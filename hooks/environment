@@ -1,0 +1,74 @@
+#!/bin/bash
+set -euo pipefail
+
+# downloads the secret by provided key using the buildkite-agent secret command
+downloadSecret() {
+    local key=$1
+
+    if ! secret=$(buildkite-agent secret get "${key}"); then
+        echo "⚠️ An error occurred"
+        exit 1
+    fi
+    echo "${secret}"
+}
+
+# decodes a base64 encoded secret, expects decoded secret to be in the format KEY=value:
+# FOO=BAR
+# BAR=BAZ
+decodeSecrets() {
+    local encoded_secret=$1
+    envscript=''
+
+    while IFS='=' read -r key value
+        do  
+            # Check if both key and value are non-empty
+            if [ -n "$key" ] && [ -n "$value" ]; then
+                # Update envscript
+                envscript+="${key}=${value}"$'\n'
+            fi
+    done <<< "$(echo "$encoded_secret" | base64 -d)"
+
+    echo "$envscript"
+}
+
+# decodes the base64 encoded secret passed in args, and exports the decoded secrets 
+# into the environment via the envscript variable
+processSecrets() {
+    local encoded_secret=$1
+    local envscript=''
+    
+    echo "~~~ 🔐 Fetching secrets from Buildkite secrets"
+
+    if ! envscript=$(decodeSecrets "${encoded_secret}"); then
+        echo "⚠️ Unable to decode secrets"
+        exit 1
+    fi
+
+    echo "Evaluating ${#envscript} bytes of env"
+    set -o allexport
+    eval "$envscript"
+    set +o allexport
+}
+
+# primarily used for debugging; The job log will show what env vars have changed after this hook is executed
+dumpEnvSecrets() {
+  if [[ "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_DUMP_ENV:-}" =~ ^(true|1)$ ]] ; then
+    echo "~~~ 🔎 Environment variables that were set" >&2;
+    comm -13 <(echo "$env_before") <(env | sort) || true
+  fi
+}
+
+
+env_before="$(env | sort)" # used by 
+
+# If we are using a specific key we should download and evaluate it
+if [[ -n "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_KEY:-}" ]]; then
+    secret=$(downloadSecret "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_KEY}")
+    processSecrets "${secret}"
+else
+    # otherwise use the default env
+    secret=$(downloadSecret "env")
+    processSecrets "${secret}"
+fi
+
+dumpEnvSecrets
