@@ -11,7 +11,7 @@ SECRET_KEY=llamas
 COFFEE=more
 ```
 
-You can create a secret in your Buildkite cluster(s) from the Buildkite UI following the instructions in the documentation [here](https://buildkite.com/docs/pipelines/buildkite-secrets#create-a-secret-using-the-buildkite-interface).
+You can create a secret in your Buildkite cluster(s) from the Buildkite UI following the instructions in the documentation [here](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets#create-a-secret-using-the-buildkite-interface).
 
 ## Examples
 
