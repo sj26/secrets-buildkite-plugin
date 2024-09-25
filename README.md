@@ -1,6 +1,6 @@
 # Cluster Secrets Buildkite Plugin
 
-A Buildkite plugin used to fetch secrets from [Buildkite Secrets](https://buildkite.com/docs/pipelines/buildkite-secrets),
+A Buildkite plugin used to fetch secrets from [Buildkite Secrets](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets),
 
 ## Storing Secrets
 The plugin expects that secrets will be stored base64 encoded in a secret with the key "env", in the format KEY=value in Buildkite secrets:
