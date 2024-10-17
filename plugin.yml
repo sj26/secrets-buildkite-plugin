@@ -8,4 +8,6 @@ configuration:
   properties:
     key:
       type: string
+    variables:
+      type: object
 additionalProperties: false
