@@ -6,10 +6,11 @@ downloadSecret() {
     local key=$1
 
     if ! secret=$(buildkite-agent secret get "${key}"); then
-        echo "⚠️ An error occurred"
-        exit 1
+        echo "not found"
+    else
+        echo "${secret}"
     fi
-    echo "${secret}"
+    
 }
 
 # decodes a base64 encoded secret, expects decoded secret to be in the format KEY=value:
@@ -56,9 +57,11 @@ processVariables() {
     key="${param/BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_/}"
     path="${!param}"
 
-    value=$(buildkite-agent secret get "${path}")
-
-    export "${path}=${value}"
+    if ! value=$(buildkite-agent secret get "${path}"); then
+        echo "⚠️ Unable to find secret at ${path}"
+    else
+        export "${path}=${value}"
+    fi    
   done
 }
 
@@ -74,9 +77,13 @@ dumpEnvSecrets() {
 env_before="$(env | sort)" # used by
 
 # If we are using a specific key we should download and evaluate it
-if [[ -n "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_KEY:-}" ]]; then
-    secret=$(downloadSecret "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_KEY}")
-    processSecrets "${secret}"
+if [[ -n "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV:-env}" ]]; then
+    secret=$(downloadSecret "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV:-env}")
+    if [[ "${secret}" == "not found" ]]; then
+        echo "Unable to find secret at ${BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV:-env}"
+    else
+        processSecrets "${secret}"
+    fi
 fi
 
 # Now download and set ENV specified using the `variables` plugin param
