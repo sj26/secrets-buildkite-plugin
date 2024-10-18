@@ -58,7 +58,7 @@ processVariables() {
 
     value=$(buildkite-agent secret get "${path}")
 
-    export "${key}=${value}"
+    export "${path}=${value}"
   done
 }
 
