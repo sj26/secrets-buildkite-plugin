@@ -19,7 +19,7 @@ steps:
   - command: echo "The content of ANIMAL is \$ANIMAL"
     plugins:
       - cluster-secrets#v0.1.0:
-          parameters:
+          variables:
             ANIMAL: llamas
             FOO: bar
 ```
