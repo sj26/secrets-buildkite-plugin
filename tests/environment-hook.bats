@@ -77,18 +77,20 @@ setup() {
     run bash -c "$PWD/hooks/environment"
 
     assert_success
-    assert_output --partial "Unable to find secret at"
+    assert_output --partial "No secret found"
     unstub buildkite-agent
 }
 
-@test "If no custom key found in Buildkite secrets the plugin does nothing - but doesn't fail" {
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV="llamas"
+@test "If no key from parameters found in Buildkite secrets the plugin fails" {
+    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_0="ANIMAL"
    
-    stub buildkite-agent "secret get llamas : echo 'not found'"
+    stub buildkite-agent \
+        "secret get env : echo 'not found'" \
+        "secret get ANIMAL : exit 1" 
 
     run bash -c "$PWD/hooks/environment"
 
-    assert_success
-    assert_output --partial "Unable to find secret at"
+    assert_failure
+    assert_output --partial "⚠️ Unable to find secret at"
     unstub buildkite-agent
 }
