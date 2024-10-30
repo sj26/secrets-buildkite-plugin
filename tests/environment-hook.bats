@@ -36,11 +36,11 @@ setup() {
 
 @test "Download single variable from Buildkite secrets" {
     export TESTDATA='Rk9PPWJhcgpCQVI9QmF6ClNFQ1JFVD1sbGFtYXMK'
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_0="ANIMAL"
+    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_ANIMAL="best"
     
     stub buildkite-agent \
         "secret get env : echo ${TESTDATA}" \
-        "secret get ANIMAL : echo llama"
+        "secret get best : echo llama"
 
     run bash -c "$PWD/hooks/environment"
 
@@ -51,15 +51,15 @@ setup() {
 
 @test "Download multiple variables from Buildkite secrets" {
     export TESTDATA='Rk9PPWJhcgpCQVI9QmF6ClNFQ1JFVD1sbGFtYXMK'
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_0="ANIMAL"
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_1="COUNTRY"
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_2="FOOD"
+    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_ANIMAL="best"
+    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_COUNTRY="great-north"
+    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_FOOD="chips"
     
     stub buildkite-agent \
         "secret get env : echo ${TESTDATA}" \
-        "secret get ANIMAL : echo llama" \
-        "secret get COUNTRY : echo Canada" \
-        "secret get FOOD : echo Poutine"
+        "secret get best : echo llama" \
+        "secret get great-north : echo Canada" \
+        "secret get chips : echo Poutine"
 
     run bash -c "$PWD/hooks/environment"
 
@@ -82,11 +82,11 @@ setup() {
 }
 
 @test "If no key from parameters found in Buildkite secrets the plugin fails" {
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_0="ANIMAL"
+    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_ANIMAL="best"
    
     stub buildkite-agent \
         "secret get env : echo 'not found'" \
-        "secret get ANIMAL : exit 1" 
+        "secret get best : exit 1" 
 
     run bash -c "$PWD/hooks/environment"
 
