@@ -6,6 +6,8 @@ requirements:
  - buildkite-agent
 configuration:
   properties:
-    key:
+    env:
       type: string
+    variables:
+      type: object
 additionalProperties: false

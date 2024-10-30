@@ -6,10 +6,11 @@ downloadSecret() {
     local key=$1
 
     if ! secret=$(buildkite-agent secret get "${key}"); then
-        echo "⚠️ An error occurred"
-        exit 1
+        echo "not found ${key}"
+    else
+        echo "${secret}"
     fi
-    echo "${secret}"
+    
 }
 
 # decodes a base64 encoded secret, expects decoded secret to be in the format KEY=value:
@@ -20,7 +21,7 @@ decodeSecrets() {
     envscript=''
 
     while IFS='=' read -r key value
-        do  
+        do
             # Check if both key and value are non-empty
             if [ -n "$key" ] && [ -n "$value" ]; then
                 # Update envscript
@@ -31,23 +32,38 @@ decodeSecrets() {
     echo "$envscript"
 }
 
-# decodes the base64 encoded secret passed in args, and exports the decoded secrets 
+# decodes the base64 encoded secret passed in args, and exports the decoded secrets
 # into the environment via the envscript variable
 processSecrets() {
     local encoded_secret=$1
     local envscript=''
-    
-    echo "~~~ 🔐 Fetching secrets from Buildkite secrets"
 
     if ! envscript=$(decodeSecrets "${encoded_secret}"); then
         echo "⚠️ Unable to decode secrets"
         exit 1
     fi
 
-    echo "Evaluating ${#envscript} bytes of env"
+    # I don't think this echo is really needed outside of debugging during development
+    # so going to comment out for now and we can always re-evaluate it's usefulness later
+    # echo "Evaluating ${#envscript} bytes of env"
     set -o allexport
     eval "$envscript"
     set +o allexport
+}
+
+processVariables() {
+  # Extract the environment variable keys and Buildkite secret paths.
+  for param in ${!BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_*}; do
+    key="${param/BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_/}"
+    path="${!param}"
+    
+    if ! value=$(buildkite-agent secret get "${path}"); then
+        echo "⚠️ Unable to find secret at ${path}"
+        exit 1
+    else
+        export "${key}=${value}"
+    fi    
+  done
 }
 
 # primarily used for debugging; The job log will show what env vars have changed after this hook is executed
@@ -59,16 +75,21 @@ dumpEnvSecrets() {
 }
 
 
-env_before="$(env | sort)" # used by 
+env_before="$(env | sort)" # used by
 
+
+echo "🔐 Fetching env secrets from Buildkite secrets"
 # If we are using a specific key we should download and evaluate it
-if [[ -n "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_KEY:-}" ]]; then
-    secret=$(downloadSecret "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_KEY}")
-    processSecrets "${secret}"
-else
-    # otherwise use the default env
-    secret=$(downloadSecret "env")
-    processSecrets "${secret}"
+if [[ -n "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV:-env}" ]]; then
+    secret=$(downloadSecret "${BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV:-env}")
+    if [[ "${secret}" =~ "not found" ]]; then
+        echo "No secret found at ${BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV:-env}"
+    else
+        processSecrets "${secret}"
+    fi
 fi
+
+# Now download and set ENV specified using the `variables` plugin param
+processVariables
 
 dumpEnvSecrets
