@@ -43,14 +43,15 @@ processSecrets() {
         exit 1
     fi
 
-    echo "Evaluating ${#envscript} bytes of env"
+    # I don't think this echo is really needed outside of debugging during development
+    # so going to comment out for now and we can always re-evaluate it's usefulness later
+    # echo "Evaluating ${#envscript} bytes of env"
     set -o allexport
     eval "$envscript"
     set +o allexport
 }
 
 processVariables() {
-     echo "🔑 Fetching single variable secrets from Buildkite secrets"
   # Extract the environment variable keys and Buildkite secret paths.
   for param in ${!BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_*}; do
     key="${param/BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_/}"
