@@ -1,4 +1,4 @@
-# Cluster Secrets Buildkite Plugin
+# Secrets Buildkite Plugin
 
 A Buildkite plugin used to fetch secrets from [Buildkite Secrets](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets),
 
@@ -18,7 +18,7 @@ A `pipeline.yml` like this will read each secret out into a ENV variable:
 steps:
   - command: echo "The content of ANIMAL is \$ANIMAL"
     plugins:
-      - cluster-secrets#v1.0.0:
+      - secrets#v1.0.0:
           variables:
             ANIMAL: llamas
             FOO: bar
@@ -50,7 +50,7 @@ job environment using a pipeline.yml like this:
 steps:
   - command: build.sh
     plugins:
-      - cluster-secrets#v1.0.0:
+      - secrets#v1.0.0:
           env: "llamas"
 ```
 

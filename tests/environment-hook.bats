@@ -6,7 +6,7 @@ setup() {
   load "${BATS_PLUGIN_PATH}/load.bash"
 
   export BUILDKITE_PIPELINE_SLUG=testpipe
-  export BUILDKITE_PLUGIN_CLUSTER_SECRETS_DUMP_ENV=true
+  export BUILDKITE_PLUGIN_SECRETS_DUMP_ENV=true
 }
 
 @test "Download default env from Buildkite secrets" {
@@ -23,7 +23,7 @@ setup() {
 
 @test "Download custom env from Buildkite secrets" {
     export TESTDATA='Rk9PPWJhcgpCQVI9QmF6ClNFQ1JFVD1sbGFtYXMK'
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_ENV="llamas"
+    export BUILDKITE_PLUGIN_SECRETS_ENV="llamas"
 
     stub buildkite-agent "secret get llamas : echo ${TESTDATA}"
 
@@ -36,8 +36,8 @@ setup() {
 
 @test "Download single variable from Buildkite secrets" {
     export TESTDATA='Rk9PPWJhcgpCQVI9QmF6ClNFQ1JFVD1sbGFtYXMK'
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_ANIMAL="best"
-    
+    export BUILDKITE_PLUGIN_SECRETS_VARIABLES_ANIMAL="best"
+
     stub buildkite-agent \
         "secret get env : echo ${TESTDATA}" \
         "secret get best : echo llama"
@@ -51,10 +51,10 @@ setup() {
 
 @test "Download multiple variables from Buildkite secrets" {
     export TESTDATA='Rk9PPWJhcgpCQVI9QmF6ClNFQ1JFVD1sbGFtYXMK'
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_ANIMAL="best"
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_COUNTRY="great-north"
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_FOOD="chips"
-    
+    export BUILDKITE_PLUGIN_SECRETS_VARIABLES_ANIMAL="best"
+    export BUILDKITE_PLUGIN_SECRETS_VARIABLES_COUNTRY="great-north"
+    export BUILDKITE_PLUGIN_SECRETS_VARIABLES_FOOD="chips"
+
     stub buildkite-agent \
         "secret get env : echo ${TESTDATA}" \
         "secret get best : echo llama" \
@@ -71,7 +71,7 @@ setup() {
 }
 
 @test "If no key env found in Buildkite secrets the plugin does nothing - but doesn't fail" {
-   
+
     stub buildkite-agent "secret get env : echo 'not found'"
 
     run bash -c "$PWD/hooks/environment"
@@ -82,11 +82,11 @@ setup() {
 }
 
 @test "If no key from parameters found in Buildkite secrets the plugin fails" {
-    export BUILDKITE_PLUGIN_CLUSTER_SECRETS_VARIABLES_ANIMAL="best"
-   
+    export BUILDKITE_PLUGIN_SECRETS_VARIABLES_ANIMAL="best"
+
     stub buildkite-agent \
         "secret get env : echo 'not found'" \
-        "secret get best : exit 1" 
+        "secret get best : exit 1"
 
     run bash -c "$PWD/hooks/environment"
 
