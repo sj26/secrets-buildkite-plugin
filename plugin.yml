@@ -4,10 +4,4 @@ author: "@buildkite-plugins"
 requirements:
   - bash
   - buildkite-agent
-configuration:
-  properties:
-    env:
-      type: string
-    variables:
-      type: object
-additionalProperties: false
+additionalProperties: true
